@@ -2680,6 +2680,13 @@ axe-core@^4.0.2:
   resolved "https://registry.npm.taobao.org/axe-core/download/axe-core-4.1.4.tgz#f19cd99a84ee32a318b9c5b5bb8ed373ad94f143"
   integrity sha1-8ZzZmoTuMqMYucW1u47Tc62U8UM=
 
+axios@^0.21.1:
+  version "0.21.1"
+  resolved "https://registry.npm.taobao.org/axios/download/axios-0.21.1.tgz?cache=0&sync_timestamp=1608611162952&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Faxios%2Fdownload%2Faxios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
+  integrity sha1-IlY0gZYvTWvemnbVFu8OXTwJsrg=
+  dependencies:
+    follow-redirects "^1.10.0"
+
 axobject-query@^2.2.0:
   version "2.2.0"
   resolved "https://registry.npm.taobao.org/axobject-query/download/axobject-query-2.2.0.tgz#943d47e10c0b704aa42275e20edf3722648989be"
@@ -5246,7 +5253,7 @@ flush-write-stream@^1.0.0:
     inherits "^2.0.3"
     readable-stream "^2.3.6"
 
-follow-redirects@^1.0.0:
+follow-redirects@^1.0.0, follow-redirects@^1.10.0:
   version "1.13.3"
   resolved "https://registry.npm.taobao.org/follow-redirects/download/follow-redirects-1.13.3.tgz#e5598ad50174c1bc4e872301e82ac2cd97f90267"
   integrity sha1-5VmK1QF0wbxOhyMB6CrCzZf5Amc=
@@ -9304,6 +9311,11 @@ react-is@^17.0.1:
   version "17.0.2"
   resolved "https://registry.npm.taobao.org/react-is/download/react-is-17.0.2.tgz?cache=0&other_urls=https%3A%2F%2Fregistry.npm.taobao.org%2Freact-is%2Fdownload%2Freact-is-17.0.2.tgz#e691d4a8e9c789365655539ab372762b0efb54f0"
   integrity sha1-5pHUqOnHiTZWVVOas3J2Kw77VPA=
+
+react-lazyload@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.npm.taobao.org/react-lazyload/download/react-lazyload-3.2.0.tgz#497bd06a6dbd7015e3376e1137a67dc47d2dd021"
+  integrity sha1-SXvQam29cBXjN24RN6Z9xH0t0CE=
 
 react-redux@^7.2.3:
   version "7.2.3"

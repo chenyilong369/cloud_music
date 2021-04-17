@@ -12,7 +12,7 @@ import { fromJS } from 'immutable'
 
 const changeSingerList = (data) => ({
   type: CHANGE_SINGER_LIST,
-  data: fromJS(data),
+  data,
 })
 
 export const changePageCount = (data) => ({
@@ -72,9 +72,9 @@ export const refreshMoreHotSingerList = () => {
 }
 
 //第一次加载对应类别的歌手
-export const getSingerList = (category, alpha) => {
+export const getSingerList = (type, area, alpha) => {
   return (dispatch, getState) => {
-    getSingerListRequest(category, alpha, 0)
+    getSingerListRequest(type, area, alpha, 0)
       .then((res) => {
         const data = res.artists
         dispatch(changeSingerList(data))
@@ -92,7 +92,7 @@ export const refreshMoreSingerList = (category, alpha) => {
   return (dispatch, getState) => {
     const pageCount = getState().getIn(['singers', 'pageCount'])
     const singerList = getState().getIn(['singers', 'singerList']).toJS()
-    getSingerListRequest(category, alpha, pageCount)
+    getSingerListRequest(category.type, category.area, alpha, pageCount)
       .then((res) => {
         const data = [...singerList, ...res.artists]
         dispatch(changeSingerList(data))

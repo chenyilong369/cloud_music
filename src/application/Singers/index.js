@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import HorizenItem from '../../baseUI/horizen-item'
 import { NavContainer, List, ListItem, ListContainer } from './style.js'
 import { alphaTypes, categoryTypes } from '../../api/config'
@@ -15,28 +15,31 @@ import {
 } from './store/actionCreators'
 import { connect } from 'react-redux'
 
-// const singerList = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((item) => {
-//   return {
-//     picUrl: 'https://p2.music.126.net/uTwOm8AEFFX_BYHvfvFcmQ==/109951164232057952.jpg',
-//     name: '隔壁老樊',
-//     accountId: 277313426,
-//   }
-// })
-
 const Singers = (props) => {
-  const {singerList} = props
+  const { singerList, updateDispatch } = props
   let [category, setCategory] = useState('')
   let [alpha, setAlpha] = useState('')
+  let [type, setType] = useState('')
+  let [area, setarea] = useState('')
+
+  useEffect(() => {
+    updateDispatch(-1, -1, '')
+  }, [updateDispatch])
 
   let handleUpdateAlpha = (val) => {
-    setAlpha(val)
+    setAlpha(val.key)
+    updateDispatch(type, area, val.key)
   }
 
   let handleUpdateCategory = (val) => {
-    setCategory(val)
+    setCategory(val.key)
+    setType(val.type)
+    setarea(val.area)
+    updateDispatch(val.type, val.area, alpha)
   }
 
   const renderSingerList = () => {
+    // console.log(singerList)
     return (
       <List>
         {singerList.map((item, index) => {
@@ -58,7 +61,7 @@ const Singers = (props) => {
       <NavContainer>
         <HorizenItem
           list={categoryTypes}
-          title={'分类(默认热门)'}
+          title={'分类：'}
           handleClick={handleUpdateCategory}
           oldVal={category}
         />
@@ -81,39 +84,39 @@ const mapStateToProps = (state) => ({
   enterLoading: state.getIn(['singers', 'enterLoading']),
   pullUpLoading: state.getIn(['singers', 'pullUpLoading']),
   pullDownLoading: state.getIn(['singers', 'pullDownLoading']),
-  pageCount: state.getIn(['singers', 'pageCount'])
-});
+  pageCount: state.getIn(['singers', 'pageCount']),
+})
 const mapDispatchToProps = (dispatch) => {
   return {
     getHotSingerDispatch() {
-      dispatch(getHotSingerList());
+      dispatch(getHotSingerList())
     },
-    updateDispatch(category, alpha) {
-      dispatch(changePageCount(0));//由于改变了分类，所以pageCount清零
-      dispatch(changeEnterLoading(true));//loading，现在实现控制逻辑，效果实现放到下一节，后面的loading同理
-      dispatch(getSingerList(category, alpha));
+    updateDispatch(type, area, alpha) {
+      dispatch(changePageCount(0)) //由于改变了分类，所以pageCount清零
+      dispatch(changeEnterLoading(true)) //loading，现在实现控制逻辑，效果实现放到下一节，后面的loading同理
+      dispatch(getSingerList(type, area, alpha))
     },
     // 滑到最底部刷新部分的处理
     pullUpRefreshDispatch(category, alpha, hot, count) {
-      dispatch(changePullUpLoading(true));
-      dispatch(changePageCount(count+1));
-      if(hot){
-        dispatch(refreshMoreHotSingerList());
+      dispatch(changePullUpLoading(true))
+      dispatch(changePageCount(count + 1))
+      if (hot) {
+        dispatch(refreshMoreHotSingerList())
       } else {
-        dispatch(refreshMoreSingerList(category, alpha));
+        dispatch(refreshMoreSingerList(category, alpha))
       }
     },
     //顶部下拉刷新
     pullDownRefreshDispatch(category, alpha) {
-      dispatch(changePullDownLoading(true));
-      dispatch(changePageCount(0));//属于重新获取数据
-      if(category === '' && alpha === ''){
-        dispatch(getHotSingerList());
+      dispatch(changePullDownLoading(true))
+      dispatch(changePageCount(0)) //属于重新获取数据
+      if (category === '' && alpha === '') {
+        dispatch(getHotSingerList())
       } else {
-        dispatch(getSingerList(category, alpha));
+        dispatch(getSingerList(category, alpha))
       }
-    }
+    },
   }
-};   
+}
 
-export default connect(mapStateToProps, mapDispatchToProps)(React.memo(Singers));
+export default connect(mapStateToProps, mapDispatchToProps)(React.memo(Singers))

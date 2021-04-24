@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import HorizenItem from '../../baseUI/horizen-item'
 import { NavContainer, List, ListItem, ListContainer } from './style.js'
 import { alphaTypes, categoryTypes } from '../../api/config'
 import Scroll from '../../baseUI/scroll'
+import LazyLoad, { forceCheck, forceVisible } from 'react-lazyload'
+import Loading from '../../baseUI/loading/index'
 import {
   getSingerList,
   getHotSingerList,
@@ -14,39 +16,68 @@ import {
   refreshMoreHotSingerList,
 } from './store/actionCreators'
 import { connect } from 'react-redux'
-
+import {CategoryDataContext, CHANGE_CATEGORY, CHANGE_ALPHA, CHANGE_TYPE, CHANGE_AREA} from './data'
 const Singers = (props) => {
-  const { singerList, updateDispatch } = props
-  let [category, setCategory] = useState('')
-  let [alpha, setAlpha] = useState('')
-  let [type, setType] = useState('')
-  let [area, setarea] = useState('')
+  const {
+    singerList,
+    updateDispatch,
+    pullDownRefreshDispatch,
+    pullUpRefreshDispatch,
+    pageCount,
+    pullUpLoading,
+    pullDownLoading,
+    enterLoading,
+    getHotSingerDispatch
+  } = props
+  const {data, dispatch} = useContext(CategoryDataContext)
+  const {category, alpha, type, area} = data.toJS()
 
   useEffect(() => {
-    updateDispatch(-1, -1, '')
-  }, [updateDispatch])
+    if(!singerList.size) {
+      getHotSingerDispatch()
+    }
+  }, [])
 
   let handleUpdateAlpha = (val) => {
-    setAlpha(val.key)
+    dispatch({type: CHANGE_ALPHA, data: val.key})
     updateDispatch(type, area, val.key)
   }
 
   let handleUpdateCategory = (val) => {
-    setCategory(val.key)
-    setType(val.type)
-    setarea(val.area)
+    dispatch({type: CHANGE_CATEGORY, data: val.key})
+    dispatch({type: CHANGE_TYPE, data: val.type})
+    dispatch({type: CHANGE_AREA, data: val.area})
     updateDispatch(val.type, val.area, alpha)
   }
 
+  const handlePullUp = () => {
+    pullUpRefreshDispatch(type, area, alpha, category === '', pageCount)
+  }
+
+  const handlePullDown = () => {
+    pullDownRefreshDispatch(type, area, alpha)
+  }
+
   const renderSingerList = () => {
-    // console.log(singerList)
+    const list = singerList ? singerList.toJS() : []
     return (
       <List>
-        {singerList.map((item, index) => {
+        {list.map((item, index) => {
           return (
             <ListItem key={item.accountId + '' + index}>
               <div className='img_wrapper'>
-                <img src={`${item.picUrl}?param=300x300`} width='100%' height='100%' alt='music' />
+                <LazyLoad
+                  placeholder={
+                    <img width='100%' height='100%' src={require('./singer.png')} alt='music' />
+                  }
+                >
+                  <img
+                    src={`${item.picUrl}?param=300x300`}
+                    width='100%'
+                    height='100%'
+                    alt='music'
+                  />
+                </LazyLoad>
               </div>
               <span className='name'>{item.name}</span>
             </ListItem>
@@ -62,18 +93,27 @@ const Singers = (props) => {
         <HorizenItem
           list={categoryTypes}
           title={'分类：'}
-          handleClick={handleUpdateCategory}
+          handleClick={val => handleUpdateCategory(val)}
           oldVal={category}
         />
         <HorizenItem
           list={alphaTypes}
           title={'首字母：'}
-          handleClick={handleUpdateAlpha}
+          handleClick={val => handleUpdateAlpha(val)}
           oldVal={alpha}
         />
       </NavContainer>
       <ListContainer>
-        <Scroll>{renderSingerList()}</Scroll>
+        <Scroll
+          pullUp={handlePullUp}
+          pullDown={handlePullDown}
+          pullUpLoading={pullUpLoading}
+          pullDownLoading={pullDownLoading}
+          onScroll={forceCheck}
+        >
+          {renderSingerList()}
+        </Scroll>
+        <Loading show={enterLoading} />
       </ListContainer>
     </div>
   )
@@ -90,6 +130,7 @@ const mapDispatchToProps = (dispatch) => {
   return {
     getHotSingerDispatch() {
       dispatch(getHotSingerList())
+      dispatch(changeEnterLoading(false))
     },
     updateDispatch(type, area, alpha) {
       dispatch(changePageCount(0)) //由于改变了分类，所以pageCount清零
@@ -97,26 +138,26 @@ const mapDispatchToProps = (dispatch) => {
       dispatch(getSingerList(type, area, alpha))
     },
     // 滑到最底部刷新部分的处理
-    pullUpRefreshDispatch(category, alpha, hot, count) {
+    pullUpRefreshDispatch(type, area, alpha, hot, count) {
       dispatch(changePullUpLoading(true))
       dispatch(changePageCount(count + 1))
       if (hot) {
         dispatch(refreshMoreHotSingerList())
       } else {
-        dispatch(refreshMoreSingerList(category, alpha))
+        dispatch(refreshMoreSingerList(type, area, alpha))
       }
     },
     //顶部下拉刷新
-    pullDownRefreshDispatch(category, alpha) {
+    pullDownRefreshDispatch(type, area, alpha) {
       dispatch(changePullDownLoading(true))
       dispatch(changePageCount(0)) //属于重新获取数据
-      if (category === '' && alpha === '') {
+      if (type === '' && alpha === '' && area === '') {
         dispatch(getHotSingerList())
       } else {
-        dispatch(getSingerList(category, alpha))
+        dispatch(getSingerList(type, area, alpha))
       }
     },
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(React.memo(Singers))
+export default connect(mapStateToProps, mapDispatchToProps)(Singers)

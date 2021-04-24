@@ -1,12 +1,36 @@
-import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState, useMemo } from 'react'
 import BScroll from 'better-scroll'
 import PropTypes from 'prop-types'
 import styled from 'styled-components'
+import Loading from '../loading/index'
+import LoadingV2 from '../loading-v2/index'
+import {debounce} from '../../api/utils'
 const ScrollContainer = styled.div`
   width: 100%;
   height: 100%;
   overflow: hidden;
 `
+const PullUpLoading = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 5px;
+  width: 60px;
+  height: 60px;
+  margin: auto;
+  z-index: 100;
+`
+
+export const PullDownLoading = styled.div`
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0px;
+  height: 30px;
+  margin: auto;
+  z-index: 100;
+`
+
 const Scroll = forwardRef((props, ref) => {
   const [scroll, setScroll] = useState()
   const scrollContaninerRef = useRef()
@@ -22,6 +46,19 @@ const Scroll = forwardRef((props, ref) => {
     bounceTop,
     bounceBottom,
   } = props
+
+  const PullUpdisplayStyle = pullUpLoading ? { display: '' } : { display: 'none' }
+  const PullDowndisplayStyle = pullDownLoading ? { display: '' } : { display: 'none' }
+
+  let pullUpDebounce = useMemo(() => {
+    return debounce(pullUp, 300) 
+  },[pullUp])
+  // 不然拿到的始终是第一次 pullUp 函数的引用，相应的闭包作用域变量都是第一次的，产生闭包陷阱。下同。
+
+  let pullDownDebounce = useMemo(() => {
+    return debounce(pullDown, 300)
+  }, [pullDown]) 
+
   useEffect(() => {
     const scroll = new BScroll(scrollContaninerRef.current, {
       scrollX: direction === 'horizontal',
@@ -58,28 +95,30 @@ const Scroll = forwardRef((props, ref) => {
 
   useEffect(() => {
     if (!scroll || !pullUp) return
-    scroll.on('scrollEnd', () => {
-      if (scroll.y <= scroll.maxScroll + 100) {
-        pullUp()
+    const handlePullUp = () => {
+      if(scroll.y <= scroll.maxScrollY +100) {
+        pullUpDebounce()
       }
-    })
+    }
+    scroll.on('scrollEnd', handlePullUp)
     return () => {
       scroll.off('scrollEnd')
     }
-  }, [pullUp, scroll])
+  }, [pullUp, pullUpDebounce, scroll])
 
   useEffect(() => {
     if (!scroll || !pullDown) return
-    scroll.on('touchEnd', (pos) => {
+    const handlePullDown = (pos) => {
       if (pos.y > 50) {
-        pullDown()
+        pullDownDebounce()
       }
-    })
+    }
+    scroll.on('touchEnd', handlePullDown)
     return () => {
       scroll.off('touchEnd')
     }
-  }, [pullDown, scroll])
-
+  }, [pullDown, pullDownDebounce, scroll])
+  
   useImperativeHandle(ref, () => ({
     refresh() {
       if (scroll) {
@@ -88,15 +127,23 @@ const Scroll = forwardRef((props, ref) => {
       }
     },
     getScroll() {
-      if(scroll) {
+      if (scroll) {
         return scroll
       }
-    }
+    },
   }))
 
   return (
     <ScrollContainer ref={scrollContaninerRef}>
       {props.children}
+      {/* 滑到底部加载动画 */}
+      <PullUpLoading style={PullUpdisplayStyle}>
+        <Loading></Loading>
+      </PullUpLoading>
+      {/* 顶部下拉刷新动画 */}
+      <PullDownLoading style={PullDowndisplayStyle}>
+        <LoadingV2></LoadingV2>
+      </PullDownLoading>
     </ScrollContainer>
   )
 })

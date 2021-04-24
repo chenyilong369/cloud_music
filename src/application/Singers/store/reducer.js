@@ -16,7 +16,7 @@ const dispatch = (state = defaultState, action) => {
     case actionTypes.CHANGE_PAGE_COUNT:
       return state.set('pageCount', action.data)
     case actionTypes.CHANGE_ENTER_LOADING:
-      return state.set('enterloading', action.data)
+      return state.set('enterLoading', action.data)
     case actionTypes.CHANGE_PULLUP_LOADING:
       return state.set('pullUpLoading', action.data)
     case actionTypes.CHANGE_PULLDOWN_LOADING:

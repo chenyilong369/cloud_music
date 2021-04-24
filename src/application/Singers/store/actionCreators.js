@@ -1,18 +1,28 @@
 import { getHotSingerListRequest, getSingerListRequest } from '../../../api/request'
 import {
   CHANGE_SINGER_LIST,
-  CHANGE_CATOGORY,
-  CHANGE_ALPHA,
   CHANGE_PAGE_COUNT,
   CHANGE_PULLUP_LOADING,
   CHANGE_PULLDOWN_LOADING,
   CHANGE_ENTER_LOADING,
+  CHANGE_CATOGORY,
+  CHANGE_ALPHA,
 } from './constants'
 import { fromJS } from 'immutable'
 
+export const changeCategory = (data) => ({
+  type: CHANGE_CATOGORY,
+  data
+});
+
+export const changeAlpha = (data) => ({
+  type: CHANGE_ALPHA,
+  data
+});
+
 const changeSingerList = (data) => ({
   type: CHANGE_SINGER_LIST,
-  data,
+  data: fromJS(data),
 })
 
 export const changePageCount = (data) => ({
@@ -41,8 +51,7 @@ export const changePullDownLoading = (data) => ({
 //第一次加载热门歌手
 export const getHotSingerList = () => {
   return (dispatch) => {
-    getHotSingerListRequest(0)
-      .then((res) => {
+    getHotSingerListRequest(0).then((res) => {
         const data = res.artists
         dispatch(changeSingerList(data))
         dispatch(changeEnterLoading(false))
@@ -64,6 +73,7 @@ export const refreshMoreHotSingerList = () => {
         const data = [...singerList, ...res.artists]
         dispatch(changeSingerList(data))
         dispatch(changePullUpLoading(false))
+        dispatch(changePageCount(pageCount + 1))
       })
       .catch(() => {
         console.log('热门歌手数据获取失败')
@@ -88,11 +98,11 @@ export const getSingerList = (type, area, alpha) => {
 }
 
 //加载更多歌手
-export const refreshMoreSingerList = (category, alpha) => {
+export const refreshMoreSingerList = (type, area, alpha) => {
   return (dispatch, getState) => {
     const pageCount = getState().getIn(['singers', 'pageCount'])
     const singerList = getState().getIn(['singers', 'singerList']).toJS()
-    getSingerListRequest(category.type, category.area, alpha, pageCount)
+    getSingerListRequest(type, area, alpha, pageCount)
       .then((res) => {
         const data = [...singerList, ...res.artists]
         dispatch(changeSingerList(data))

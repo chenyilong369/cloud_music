@@ -33,7 +33,7 @@ function Recommend(props) {
           <RecommendList recommendList={recommendListJS}></RecommendList>
         </div>
       </Scroll>
-      {enterLoading ? <Loading /> : null}
+      <Loading show={enterLoading}/>
     </Content>
   )
 }
